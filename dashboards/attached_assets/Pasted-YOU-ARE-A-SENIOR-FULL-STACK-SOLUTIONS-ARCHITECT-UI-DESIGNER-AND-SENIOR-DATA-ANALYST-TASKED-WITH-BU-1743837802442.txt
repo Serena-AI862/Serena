@@ -1,0 +1,147 @@
+YOU ARE A SENIOR FULL-STACK SOLUTIONS ARCHITECT, UI DESIGNER, AND SENIOR DATA ANALYST TASKED WITH BUILDING A MODERN, PROFESSIONAL, AND SECURE MULTI-TENANT SAAS DASHBOARD FOR A REAL ESTATE AI CALL ASSISTANT CALLED "SERENA".
+
+YOU MUST CREATE:
+- A SECURE LOGIN AUTHENTICATION SYSTEM
+- A PERSONALIZED ANALYTICS DASHBOARD FOR REAL ESTATE AGENCIES
+- BEAUTIFUL UI LAYOUTS INSPIRED BY MODERN DESIGN PATTERNS
+- RELEVANT CALL-BASED ANALYTICS FOR AGENCY CEOS
+- SUPPORT FOR EMAIL/PASSWORD AUTH + SUPABASE OR AWS ALTERNATIVES
+- RESPONSIVE AND SLEEK VISUALS (USING SHADCN/UI OR TAILWIND)
+
+THE DASHBOARD TRACKS CUSTOMER CALLS HANDLED BY SERENA AI FOR EACH REAL ESTATE AGENCY CLIENT. CALL DATA INCLUDES: PHONE NUMBER, CALL TYPE, DURATION, TIME, RATING, APPOINTMENT STATUS, ETC.
+
+---
+
+### TASK 1: LOGIN UI + AUTH LOGIC
+
+1. DESIGN A CLEAN, PROFESSIONAL LOGIN PAGE THAT MATCHES THE ATTACHED IMAGE:
+   - Centered login form
+   - Title: **Serena AI Real Estate**
+   - Subtitle: _Call Analytics Dashboard_
+   - Fields: **Email**, **Password**, "Remember me" checkbox
+   - Include "Forgot password?" and "Sign Up" link
+   - Ensure mobile responsiveness
+
+2. IMPLEMENT FUNCTIONALITY:
+   - Email/password authentication
+   - Form validation: check email format, enforce password rules
+   - Show password toggle icon
+   - Prevent access to the dashboard unless the user is authenticated
+
+3. BACKEND:
+   - Use Supabase (or AWS Cognito equivalent)
+   - Store hashed passwords
+   - Use JWT sessions or secure cookies
+   - Create demo users:
+     - `johnadeyo@hotmail.com` / `Password`
+     - `serenaai862@gmail.com` / `Password`
+
+---
+
+### TASK 2: REAL ESTATE AGENCY CALL ANALYTICS DASHBOARD
+
+DESIGN A BEAUTIFUL DASHBOARD PAGE FOR LOGGED-IN REAL ESTATE AGENCY ADMINS. THE GOAL IS TO TRACK ALL CALL DATA PROCESSED BY SERENA AI FOR THEIR AGENCY.
+
+#### LAYOUT:
+- FOUR KPI CARDS (top row):
+  1. **Total Calls (This Week)**
+  2. **Appointments Booked**
+  3. **Average Call Duration**
+  4. **Average Call Rating**
+
+- BAR CHART:
+  - Title: _Weekly Call Volume_
+  - Show calls per day for the past 7 days
+  - Use **shadcn/ui** and apply a **custom color scheme** (e.g. soft purple or blue)
+
+- DETAILED CALLS TABLE:
+  - Columns:
+    - Phone Number
+    - Call Duration
+    - Call Type (Inbound/Outbound)
+    - Appointment Booked (Yes/No)
+    - Call Rating (1–5)
+    - Timestamp (Readable format)
+
+- BONUS INSIGHTS (THINK LIKE A REAL ESTATE CEO):
+  - Identify Peak Call Hours
+  - Missed Calls % (use dummy data logic)
+  - Call-to-Appointment Conversion Rate
+  - Top Performing Day of Week
+  - Rating Distribution Pie Chart (Optional)
+
+#### STYLING:
+- Use Tailwind CSS and shadcn/ui components
+- Soft gradients or muted palette (no harsh contrasts)
+- Rounded cards, subtle shadows, smooth hover effects
+- Responsive layout for tablets and desktop
+
+#### TECHNOLOGIES TO USE:
+- React or Next.js
+- Supabase or AWS Amplify backend
+- shadcn/ui components (Card, Table, Chart)
+- Chart library: `recharts` or `chart.js`
+
+---
+
+### DATA SCHEMA SAMPLE (POSTGRES):
+
+```sql
+TABLE users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  agency_name TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+TABLE calls (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  phone_number TEXT,
+  duration_seconds INT,
+  call_type TEXT CHECK (call_type IN ('inbound', 'outbound')),
+  appointment_booked BOOLEAN,
+  rating INT CHECK (rating BETWEEN 1 AND 5),
+  timestamp TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+### CHAIN OF THOUGHTS REQUIRED:
+
+1. UNDERSTAND: You are designing a secure, beautiful, and agency-customized call dashboard
+2. BASICS: Implement auth, create user-specific dashboards, and visualize call data
+3. BREAK DOWN: Handle login first → route to protected dashboard → pull personalized data → display insights
+4. ANALYZE: What KPIs matter to an agency CEO? Calls per day, quality, appointment outcomes, peak hours
+5. BUILD: Use Tailwind, charting libraries, secure backend, and modular React components
+6. EDGE CASES: What if no data this week? Show fallback states or encouragement to onboard team
+7. FINAL ANSWER: A complete login UI + analytics dashboard with proper data integration and demo content
+
+---
+
+### WHAT NOT TO DO
+
+- DO NOT USE DEFAULT UGLY BOOTSTRAP OR UNSTYLED HTML
+- DO NOT IGNORE AUTH LOGIC (NO STATIC LOGIN MOCKUPS)
+- NEVER DISPLAY ALL USERS' CALLS (MUST BE USER-SPECIFIC)
+- DO NOT OMIT FORM VALIDATION
+- AVOID GENERIC KPIS – THINK LIKE A CEO
+- NEVER DISPLAY AN EMPTY DASHBOARD WITH NO ANALYTICS
+
+---
+
+### SAMPLE LOGIN USERS (FOR DEMO)
+```json
+[
+  {
+    "email": "johnadeyo@hotmail.com",
+    "password": "Password"
+  },
+  {
+    "email": "serenaai862@gmail.com",
+    "password": "Password"
+  }
+]
+```
