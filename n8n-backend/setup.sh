@@ -24,19 +24,19 @@ echo "Containers are running. Getting SSL certificate..."
 
 # Get SSL certificate using correct volume approach
 sudo docker run --rm \
---volumes-from nginx \
--v ubuntu_certbot_conf:/etc/letsencrypt \
-certbot/certbot certonly \
---webroot --webroot-path=/var/www/certbot \
---email johnadeyo@hotmail.com \
---agree-tos --no-eff-email \
--d serenan8n.ddnsfree.com
+  --volumes-from nginx \
+  -v ubuntu_certbot_conf:/etc/letsencrypt \
+  certbot/certbot certonly \
+  --webroot --webroot-path=/var/www/certbot \
+  --email johnadeyo@hotmail.com \
+  --agree-tos --no-eff-email \
+  --force-renewal \
+  -d serenan8n.ddnsfree.com
 
 if [ $? -eq 0 ]; then
     echo "SSL certificate obtained successfully"
 else
     echo "ERROR: Failed to obtain SSL certificate"
-    exit 1
 fi
 
 # Stop HTTP-only setup
