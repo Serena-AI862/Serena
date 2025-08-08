@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 instance with security group for n8n Docker container'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0953efdb18e4acc47
+    Description: VPC to launch the resources into
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: EC2 instance type
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    
+  KeyPairName:
+    Type: String
+    Default: n8n-keypair
+    Description: Name for the new key pair that will be created
+    
+  SSHCidrBlock:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR block for SSH access (consider restricting to your IP)
+    
+  N8NCidrBlock:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR block for n8n web interface access
+
+Resources:
+
+  # Security Group for the instance
+  N8NSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for n8n instance
+      GroupName: n8n-security-group
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # SSH access
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHCidrBlock
+          Description: SSH access
+        # n8n web interface (default port 5678)
+        - IpProtocol: tcp
+          FromPort: 5678
+          ToPort: 5678
+          CidrIp: !Ref N8NCidrBlock
+          Description: n8n web interface
+        # HTTP (in case you want to serve n8n over port 80)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref N8NCidrBlock
+          Description: HTTP access
+        # HTTPS (in case you want to serve n8n over port 443)
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref N8NCidrBlock
+          Description: HTTPS access
+      SecurityGroupEgress:
+        # Allow all outbound traffic
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: All outbound traffic
+      Tags:
+        - Key: Name
+          Value: n8n-security-group
+
+  # EC2 Instance
+  N8NInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-020cba7c55df1f615  # Ubuntu Server 24.04 LTS AMI (us-east-1)
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref N8NSecurityGroup
+
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          
+          # Update system
+          apt update
+          apt-get install -y curl ca-certificates gnupg lsb-release
+          
+          # Install Docker
+          apt install -y docker.io
+          
+          # Start and enable Docker
+          systemctl start docker
+          systemctl enable docker
+
+          # Add user to docker group (to run docker without sudo)
+          usermod -aG docker ubuntu
+          
+          # Install Docker Compose
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          
+          # Switch to ubuntu user for all subsequent operations
+          sudo -u ubuntu bash << 'EOF'
+          cd /home/ubuntu
+          git clone https://github.com/Serena-AI862/Serena.git
+          cd /home/ubuntu/Serena/n8n-backend
+          bash setup.sh
+          EOF
+
+          
+
+      Tags:
+        - Key: Name
+          Value: n8n-instance
+
+  # Elastic IP (optional but recommended)
+  N8NElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref N8NInstance
+      Tags:
+        - Key: Name
+          Value: n8n-elastic-ip
+
+Outputs:
+  InstanceId:
+    Description: Instance ID of the n8n server
+    Value: !Ref N8NInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceId'
+      
+  PublicIP:
+    Description: Public IP address of the n8n server
+    Value: !Ref N8NElasticIP
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicIP'
+      
+  N8NURL:
+    Description: URL to access n8n web interface
+    Value: !Sub 'http://${N8NElasticIP}:5678'
+    Export:
+      Name: !Sub '${AWS::StackName}-N8NURL'
+      
+  SSHCommand:
+    Description: Command to SSH into the instance
+    Value: !Sub 'ssh -i ${KeyPairName}.pem ubuntu@${N8NElasticIP}'
+    Export:
+      Name: !Sub '${AWS::StackName}-SSHCommand'
+      
+  KeyPairId:
+    Description: ID of the created key pair
+    Value: !Ref KeyPairName
+    Export:
+      Name: !Sub '${AWS::StackName}-KeyPairId'
+      
