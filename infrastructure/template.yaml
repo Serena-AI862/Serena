@@ -111,8 +111,6 @@ Resources:
           sudo -u ubuntu bash << 'EOF'
           cd /home/ubuntu
           git clone https://github.com/Serena-AI862/Serena.git
-          cd /home/ubuntu/Serena/n8n-backend
-          bash setup.sh
           EOF
 
           
