@@ -1,4 +1,4 @@
-# Serena AI Agent Dashboard
+# Serena AI 
 
 A modern dashboard for monitoring and analyzing AI agent call performance.
 

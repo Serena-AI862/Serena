@@ -82,3 +82,13 @@ dashboard/backend/app/**/__pycache__/
 **/dist/
 **/build/
 **/*.egg-info/
+
+**/serena-dev_accessKeys.csv
+
+# Database data
+**/postgres-data/
+
+  
+  
+  
+  

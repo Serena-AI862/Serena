@@ -1,0 +1,283 @@
+{
+  "name": "calenderAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d80a6a39-be9d-4760-818b-6b5479a782d3",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        80,
+        260
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "sjBuSe2lZF7Rnsrs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=customer_email: {{ $json.body.Email }}\nproperty_information: {{ $json.body.Information || '' }}\nName: {{ $json.body.Name || '' }}\nTime: {{ $json.body.Time || '' }}\nDate: {{ $json.body.Date || '' }}\nuser_message: {{ $json.body.Summary || '' }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a calendar assistant. Your responsibilities include checking for date availability, creating, getting, and deleting events in the user's calendar. Your goal is to follow the instructions in the user_message by using the customer_email, agency_email, property_information, Name, Time, Date and Time if provided by the user. You are to use GMT timezone only. For exmple if the request is to create an event at 10pm, then it should be 10pm GMT\n\n**Calendar Management Tools**  \n   - Use \"Create Event with Attendee\". Ensure to always get customer_email and make sure its not empty.\n    1. Before you create calender event ensure the customer_email is not empty.\n    2. Ensure there are no other events on the same date and time.\n   - Use \"Get Events\" to fetch calendar schedules when requested.\n    1. Before you fetch calender event ensure the customer_email is not empty.\n   - Use \"Delete Event\" to delete an event. You must use \"Get Events\" first to get the ID of the event to delete.\n    1. Before you delete calender event ensure the customer_email is not empty.\n   - Use \"Update Event\" to update an event. You must use \"Get Events\" first to get the ID of the event to update. \n    1. Before you update calender event ensure the customer_email is not empty.\n   \n\n## Final Notes\nHere is the current date/time: {{ DateTime.now().setZone('Europe/London').toFormat('yyyy-MM-dd HH:mm:ss') }}\nCheck if the date and time is available, if not suggest another time within the same day.\nIf a duration for an event isn't specified, assume it will be one hour.\nBefore creating events ensure there are no clashing events on the same date"
+        }
+      },
+      "id": "a97d50e0-2e3f-4c8e-a4c5-f3e108af211b",
+      "name": "Calendar Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        380,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "serenaai862@gmail.com",
+          "mode": "list",
+          "cachedResultName": "serenaai862@gmail.com"
+        },
+        "start": "={{ $fromAI(\"eventStart\") }}",
+        "end": "={{ $fromAI(\"eventEnd\") }}",
+        "additionalFields": {
+          "attendees": [
+            "johnadeyo@hotmail.com",
+            "={{ $fromAI(\"customer_email\")  }}"
+          ],
+          "sendUpdates": "all",
+          "summary": "={{ $fromAI(\"eventTitle\") }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        820,
+        340
+      ],
+      "id": "40b7a483-a828-488c-af8e-ed9769a5d630",
+      "name": "Create Event with Attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Z4Timp73CleyWl3Y",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "serenaai862@gmail.com",
+          "mode": "list",
+          "cachedResultName": "serenaai862@gmail.com"
+        },
+        "timeMin": "={{ $fromAI(\"dayBefore\",\"the day before the date the user requested\") }}",
+        "timeMax": "={{ $fromAI(\"dayAfter\",\"the day after the date the user requested\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        500
+      ],
+      "id": "7e1b391c-d17e-42e3-af21-ed2c17f75a4a",
+      "name": "Get Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Z4Timp73CleyWl3Y",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "serenaai862@gmail.com",
+          "mode": "list",
+          "cachedResultName": "serenaai862@gmail.com"
+        },
+        "eventId": "={{ $fromAI(\"eventID\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        360,
+        440
+      ],
+      "id": "082a9677-ff34-4e61-8c71-60071e8b887b",
+      "name": "Delete Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Z4Timp73CleyWl3Y",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "serenaai862@gmail.com",
+          "mode": "list",
+          "cachedResultName": "serenaai862@gmail.com"
+        },
+        "eventId": "={{ $fromAI(\"eventID\") }}",
+        "updateFields": {
+          "end": "={{ $fromAI(\"endTime\") }}",
+          "start": "={{ $fromAI(\"startTime\") }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        220,
+        340
+      ],
+      "id": "15f8886f-7aa3-416b-b90c-fe8a554694c2",
+      "name": "Update Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Z4Timp73CleyWl3Y",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.output).replace(/[^\\x20-\\x7E]/g, '') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        0
+      ],
+      "id": "00ff4d5b-dd38-4445-b2b2-743de7244bb3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "calenderAgent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "73e31bb2-64d0-4d61-8ed6-8d6830c7e641",
+      "name": "Webhook",
+      "webhookId": "34dac646-5621-401c-9aa5-c9f9799eb74b"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with Attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Calendar Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "77b8d7fd-33b6-42e1-bb18-21371a88129c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d15b0d0e5493aad749db1955c26d8658d79113fbdc04bc25512fc68d83ab07f6"
+  },
+  "id": "a6IblI4Pz9HhHsIi",
+  "tags": []
+}

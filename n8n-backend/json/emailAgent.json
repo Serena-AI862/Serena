@@ -1,0 +1,201 @@
+{
+  "name": "emailAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        360,
+        280
+      ],
+      "id": "c6efa355-2cf5-454f-b0b4-09def2b47e85",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sjBuSe2lZF7Rnsrs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "emailAgent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        40,
+        0
+      ],
+      "id": "a6f259fb-759b-411b-b9df-c0483e81251d",
+      "name": "Webhook",
+      "webhookId": "aca698bd-dbf1-439c-8bb4-d1fce3a7e719"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.output).replace(/[^\\x20-\\x7E]/g, '') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        0
+      ],
+      "id": "93b2421f-81aa-4bac-b33a-4f438d9d1e7d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=customer_email: {{ $json.body.Email }}\nagency_email: {{ $json.body.Agency_Email }}\nproperty_information: {{ $json.body.Information || '' }}\nName: {{ $json.body.Name || '' }}\nTime: {{ $json.body.Time || '' }}\nDate: {{ $json.body.Date || '' }}\nuser_message: {{ $json.body.Summary || '' }}\nnumber: {{ $json.body.Number || '' }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an AI agent responsible for drafting and sending professional emails based on user instructions.  Your objective is  \nto identify the recipient’s contact information, draft a professional email, and signed off as \"Serena AI.\" before sending.\n\n\n**Email Management Tools** \n   - Use \"Send Email\" to send emails. Write an email to agency_email using the user_message provide. the email should also contain Name, Time, Date, property_information, customer_email.\n\nHere is a sample of the To, Subject and Message of the email\n**To:** {{ $json.body.Agency_Email }}  \n**Subject:** Scheduled Viewing for Duplex Apartment \n**Message** \nDear Team,\n\nI hope this email finds you well. \n\nA customer John Dickson has scheduled a viewing for the studio apartment located at 67 Shoreditch High Street E1 6JJ. The details of the viewing are as follows:\n\nDate: 28th of June 2025 \nTime: 4 PM\nEmail: customer_email\nPrperty Details: property_information\nNumber: Number\n\nBest regards,\nSerena AI.\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        420,
+        0
+      ],
+      "id": "5ada010e-57d7-49d4-b1c6-d5107dc7a9e7",
+      "name": "Email Agent"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $fromAI(\"EmailAddress\") }}",
+        "subject": "={{ $fromAI(\"subject\") }}",
+        "emailType": "text",
+        "message": "={{ $fromAI(\"emailBody\") }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        280
+      ],
+      "id": "1bf4d421-9d93-40cf-9b94-edc4c22e8929",
+      "name": "Send Email",
+      "webhookId": "fcafb8fe-6257-423b-b3f5-be384e4ce62e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OPCI5SnYEp5c2Rkz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -200
+      ],
+      "id": "a77bdfe5-3849-4b60-b402-b001881816f5",
+      "name": "When clicking ‘Test workflow’"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Test workflow’": [
+      {
+        "json": {
+          "body": {
+            "Information": "Studio apartment at 123 Marylebone Road NW1 5PT",
+            "Agency_Email": "johnadeyo@hotmail.com",
+            "Date": "tomorrow",
+            "Time": "4pm",
+            "Name": "John Bannabas",
+            "Summary": "Customer John Bannabas has requested a property valuation for his property at 67 Short Ditch High Street, E16JJ. He would like the valuation to be conducted tomorrow at 9am. Customer can be reached at johnadeyoAThotmail.com.",
+            "Email": "johnadeyoAThotmail.com"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e5042b01-b0ae-4ab5-9229-abab0fee2064",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d15b0d0e5493aad749db1955c26d8658d79113fbdc04bc25512fc68d83ab07f6"
+  },
+  "id": "xso26RNJT22mLVqB",
+  "tags": []
+}

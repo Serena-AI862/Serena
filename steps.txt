@@ -1,0 +1,39 @@
+scp -i my-n8n-key.pem ../n8n-backend/nginx-http.conf ubuntu@54.162.16.164:~/nginx-http.conf    
+nginx-http.conf
+scp -i my-n8n-key.pem ../n8n-backend/nginx-https.conf ubuntu@54.162.16.164:~/nginx-https.conf    
+nginx-https.conf
+scp -i my-n8n-key.pem ../n8n-backend/docker-compose.yml ubuntu@54.162.16.164:~/docker-compose.yml
+docker-compose.yml
+scp -i my-n8n-key.pem ../n8n-backend/docker-compose-https.yml ubuntu@54.162.16.164:~/docker-compose-https.yml
+
+
+# Start HTTP-only setup
+sudo docker-compose up -d
+
+# Wait for containers to start
+sleep 60
+
+# Get SSL certificate using correct volume approach
+sudo docker run --rm \
+  --volumes-from nginx \
+  -v ubuntu_certbot_conf:/etc/letsencrypt \
+  certbot/certbot certonly \
+  --webroot --webroot-path=/var/www/certbot \
+  --email johnadeyo@hotmail.com \
+  --agree-tos --no-eff-email \
+  -d serenan8n.ddnsfree.com
+
+# Stop HTTP-only setup
+sudo docker-compose down
+
+# Start HTTPS setup
+sudo docker-compose -f docker-compose-https.yml up -d
+
+# Check container status
+sudo docker ps
+
+# Check nginx logs
+sudo docker logs nginx
+
+# Test HTTPS
+curl -I https://serenan8n.ddnsfree.com

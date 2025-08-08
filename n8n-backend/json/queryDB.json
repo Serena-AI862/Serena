@@ -1,0 +1,264 @@
+{
+  "name": "queryDB",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        240
+      ],
+      "id": "d6942dad-7fcf-43b4-91db-6bd72a1363cd",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sjBuSe2lZF7Rnsrs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Apartment: {{ $json.body.Apartment || $json.body.message.toolCalls[0].function.arguments.Apartment }}\nPrice: {{ $json.body.Price || $json.body.message.toolCalls[0].function.arguments.Price}}\nAddress: {{ $json.body.Address || $json.body.message.toolCalls[0].function.arguments.Address }}\nFeatures: {{ $json.body.Features || $json.body.message.toolCalls[0].function.arguments.Features}}\nUser message: {{ $json.body.Summary || $json.body.message.toolCalls[0].function.arguments.Summary}}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a CRM management assistant. Your responsibilities include looking up records, adding new records, or updating a record's information.\n\n**Record Management**  \n   - Use \"Get Records\" to retrieve the information specified in {{ $json.body.Summary }} using {{ $json.body.Apartment }}, {{ $json.body.Price }}, {{ $json.body.Address }} and {{ $json.body.Features }} provided. Note retrieve all information about any property you are returning to the customer.\n    ** Please return the result found with basic information about the property first, such as Address, price, bedroom, bathroom, and Property features, except more information is asked for.\n    ** Please reurn only property whose status says available.\n\n   - Use \"Add or Update Records\" to store new property information or modify existing entries. \n\n   - Use the \"knowledgeBase\" in the following scenarios:\n    - If the user is asking for FAQ related type of questions\n    - If the answers are not in either \"Get Records\" or \"Add or Update Records\". "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        20,
+        20
+      ],
+      "id": "7a42fad9-7b12-4547-850f-39723d0c5554",
+      "name": "CRM Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "queryDB",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        20
+      ],
+      "id": "e9892e12-73c7-4479-9bbc-f77627174511",
+      "name": "Webhook",
+      "webhookId": "aca698bd-dbf1-439c-8bb4-d1fce3a7e719"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.output).replace(/[^\\x20-\\x7E]/g, '') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        20
+      ],
+      "id": "17cd9fb1-29d0-4131-b2a0-cacef71cf50d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appjhIhcKD0yMttFv",
+          "mode": "list",
+          "cachedResultName": "Skyline Agency",
+          "cachedResultUrl": "https://airtable.com/appjhIhcKD0yMttFv"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6K5uq0e1BoIcYP",
+          "mode": "list",
+          "cachedResultName": "Housing Table",
+          "cachedResultUrl": "https://airtable.com/appjhIhcKD0yMttFv/tbl6K5uq0e1BoIcYP"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        320
+      ],
+      "id": "238f59ce-d2e8-48dd-b528-d4b5f4ff469a",
+      "name": "Get Records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bFwOYM2yN6yfEJ4O",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appjhIhcKD0yMttFv",
+          "mode": "list",
+          "cachedResultName": "Skyline Agency",
+          "cachedResultUrl": "https://airtable.com/appjhIhcKD0yMttFv"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6K5uq0e1BoIcYP",
+          "mode": "list",
+          "cachedResultName": "Housing Table",
+          "cachedResultUrl": "https://airtable.com/appjhIhcKD0yMttFv/tbl6K5uq0e1BoIcYP"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $fromAI(\"name\") }}",
+            "email": "={{ $fromAI(\"emailAddress\") }}",
+            "phoneNumber": "={{ $fromAI(\"phoneNumber\") }}"
+          },
+          "matchingColumns": [
+            "name"
+          ],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phoneNumber",
+              "displayName": "phoneNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        200,
+        300
+      ],
+      "id": "e1dfd25a-cd38-4600-8892-438928b28132",
+      "name": "Add or Update Records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "bFwOYM2yN6yfEJ4O",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CRM Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "CRM Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Records": {
+      "ai_tool": [
+        [
+          {
+            "node": "CRM Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add or Update Records": {
+      "ai_tool": [
+        [
+          {
+            "node": "CRM Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "59747a30-8331-4254-8ee0-118c0623360f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d15b0d0e5493aad749db1955c26d8658d79113fbdc04bc25512fc68d83ab07f6"
+  },
+  "id": "tZdY0GCDX1NI0hv1",
+  "tags": []
+}
