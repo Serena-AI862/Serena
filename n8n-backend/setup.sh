@@ -7,16 +7,16 @@ echo "Starting n8n setup..."
 
 # Start HTTP-only setup
 echo "Starting containers with HTTP configuration..."
-sudo docker compose up -d
+sudo docker-compose up -d
 
 # Wait for containers to start and be healthy
 echo "Waiting for containers to be ready..."
 sleep 30
 
 # Check if containers are running
-if ! sudo docker compose ps | grep -q "Up"; then
+if ! sudo docker-compose ps | grep -q "Up"; then
     echo "ERROR: Containers failed to start properly"
-    sudo docker compose logs
+    sudo docker-compose logs
     exit 1
 fi
 
@@ -41,22 +41,22 @@ fi
 
 # Stop HTTP-only setup
 echo "Stopping HTTP setup..."
-sudo docker compose down
+sudo docker-compose down
 
 # Wait for containers to stop
 sleep 10
 
 # Start HTTPS setup
 echo "Starting HTTPS setup..."
-sudo docker compose -f docker-compose-https.yml up -d
+sudo docker-compose -f docker-compose-https.yml up -d
 
 # Wait for containers to start
 sleep 30
 
 # Check if containers are running
-if ! sudo docker compose -f docker-compose-https.yml ps | grep -q "Up"; then
+if ! sudo docker-compose -f docker-compose-https.yml ps | grep -q "Up"; then
     echo "ERROR: HTTPS containers failed to start properly"
-    sudo docker compose -f docker-compose-https.yml logs
+    sudo docker-compose -f docker-compose-https.yml logs
     exit 1
 fi
 
