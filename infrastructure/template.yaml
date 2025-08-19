@@ -4,7 +4,7 @@ Description: 'EC2 instance with security group for n8n Docker container'
 Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
-    Default: vpc-0953efdb18e4acc47
+    Default: vpc-0aae67a6aaea8566e
     Description: VPC to launch the resources into
 
   InstanceType:
