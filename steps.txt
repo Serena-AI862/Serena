@@ -1,3 +1,9 @@
+Create stack
+./create-stack.sh
+
+change the ip of your domain to the elastic ip. I use Dynu DNS 
+https://www.dynu.com/en-US/ControlPanel/BasicEdit?ATVPDKIKX0DER=SQBEAD0AMQAyADIAOQA3ADcAMgAxAA%7C%7C
+
 scp -i my-n8n-key.pem ../n8n-backend/nginx-http.conf ubuntu@54.162.16.164:~/nginx-http.conf    
 nginx-http.conf
 scp -i my-n8n-key.pem ../n8n-backend/nginx-https.conf ubuntu@54.162.16.164:~/nginx-https.conf    
@@ -8,12 +14,13 @@ scp -i my-n8n-key.pem ../n8n-backend/docker-compose-https.yml ubuntu@54.162.16.1
 
 
 # Start HTTP-only setup
+cd Serena/n8n-backend
 sudo docker-compose up -d
 
 # Wait for containers to start
 sleep 60
 
-# Get SSL certificate using correct volume approach
+# Get SSL certificate using correct volume approach. Note replace 'serenan8n.ddnsfree.com' with your url
 sudo docker run --rm \
   --volumes-from nginx \
   -v ubuntu_certbot_conf:/etc/letsencrypt \

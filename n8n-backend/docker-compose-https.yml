@@ -8,8 +8,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx-https.conf:/etc/nginx/nginx.conf:ro
-      - ubuntu_certbot_conf:/etc/letsencrypt
-      - ubuntu_certbot_www:/var/www/certbot
+      - n8n-backend_certbot_conf:/etc/letsencrypt
+      - n8n-backend_certbot_www:/var/www/certbot
     depends_on:
       - n8n
 
@@ -34,7 +34,7 @@ services:
       - N8N_BASIC_AUTH_USER=admin
       - N8N_BASIC_AUTH_PASSWORD=your_secure_password
     volumes:
-      - n8n_data:/home/node/.n8n
+      - n8n-backend_n8n_data:/home/node/.n8n
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,7 +48,7 @@ services:
       - POSTGRES_USER=n8n
       - POSTGRES_PASSWORD=password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - n8n-backend_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U n8n"]
       interval: 10s
@@ -56,9 +56,11 @@ services:
       retries: 5
 
 volumes:
-  n8n_data:
-  postgres_data:
-  ubuntu_certbot_conf:
+  n8n-backend_n8n_data:
     external: true
-  ubuntu_certbot_www:
+  n8n-backend_postgres_data:
+    external: true
+  n8n-backend_certbot_conf:
+    external: true
+  n8n-backend_certbot_www:
     external: true

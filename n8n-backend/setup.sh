@@ -25,7 +25,7 @@ echo "Containers are running. Getting SSL certificate..."
 # Get SSL certificate using correct volume approach
 sudo docker run --rm \
   --volumes-from nginx \
-  -v ubuntu_certbot_conf:/etc/letsencrypt \
+  -v n8n-backend_certbot_conf:/etc/letsencrypt \
   certbot/certbot certonly \
   --webroot --webroot-path=/var/www/certbot \
   --email johnadeyo@hotmail.com \
